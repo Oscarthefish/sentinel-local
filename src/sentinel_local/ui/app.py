@@ -1306,6 +1306,101 @@ def _ei_detail_server_ip(ip: str, bundle: AnalysisBundle) -> None:
         st.info("No enrichment data for this IP. Enable external enrichment and re-run to check reputation.")
 
 
+_URL_FINDING_DETAILS: dict[str, dict] = {
+    "tracking-wrapper": {
+        "label": "⚠ Tracking wrapper",
+        "risk": "medium",
+        "title": "Tracking / Redirect Wrapper",
+        "body": (
+            "The URL is wrapped by a **tracking or redirect service** — typically an email marketing "
+            "platform (e.g. Mailchimp, Sendgrid, Salesforce) or a corporate click-tracking proxy.\n\n"
+            "When you click the link, the tracking service logs the click (recipient, timestamp, device) "
+            "before forwarding you to the real destination. The unwrapped URL shown above is the actual "
+            "target after the wrapper is removed.\n\n"
+            "**Why it matters in phishing:**\n"
+            "- Attackers use legitimate tracking services to make URLs appear trustworthy\n"
+            "- The tracking domain passes reputation checks even if the final destination is malicious\n"
+            "- Always inspect the *unwrapped* destination, not the wrapper domain"
+        ),
+    },
+    "shortened-url": {
+        "label": "⚠ Shortened URL",
+        "risk": "medium",
+        "title": "URL Shortener Detected",
+        "body": (
+            "The link uses a **URL shortening service** (e.g. bit.ly, tinyurl.com, t.co, ow.ly). "
+            "These services map a short alias to a real destination that is hidden from view.\n\n"
+            "URL shorteners are widely abused in phishing and malware campaigns because:\n"
+            "- The true destination is invisible without clicking or resolving\n"
+            "- Shortened URLs bypass many URL reputation filters\n"
+            "- They can be re-targeted — the same short link can point to different destinations over time\n\n"
+            "**Recommended action:** enable redirect resolution and re-run to see the final destination "
+            "before clicking."
+        ),
+    },
+    "display-text-mismatch": {
+        "label": "🔴 Display text mismatch",
+        "risk": "high",
+        "title": "Display Text Does Not Match the Link",
+        "body": (
+            "The **visible text** of the link in the email does not match the domain the link actually "
+            "goes to. This is one of the clearest indicators of a phishing attempt.\n\n"
+            "**Example:**\n"
+            "- Display text shown to the reader: `www.paypal.com/signin`\n"
+            "- Actual URL the link goes to: `http://evil-site.ru/steal`\n\n"
+            "Legitimate senders almost never need to show one domain while linking to another. "
+            "This technique exploits the fact that most people read the displayed text rather than "
+            "hovering over or inspecting the underlying href.\n\n"
+            "**Treat this as high risk.** Do not click — inspect the final destination carefully."
+        ),
+    },
+    "redirect-resolved": {
+        "label": "↪ Redirects detected",
+        "risk": "medium",
+        "title": "URL Redirects to a Different Destination",
+        "body": (
+            "Following this URL revealed one or more **HTTP redirects** before reaching the final page. "
+            "The redirect chain is shown above.\n\n"
+            "Redirects are normal in many legitimate contexts (CDNs, login flows, link tracking). "
+            "However, multi-hop redirect chains are also commonly used to:\n"
+            "- Evade URL reputation filters (the first hop looks clean)\n"
+            "- Route through legitimate domains before landing on a malicious page\n"
+            "- Serve different content to security scanners vs real users (cloaking)\n\n"
+            "**Check the final destination** in the redirect chain — that is the page the user will "
+            "actually land on. A clean-looking initial URL is not a guarantee of a safe destination."
+        ),
+    },
+    "screenshot-available": {
+        "label": "📸 Screenshot captured",
+        "risk": "low",
+        "title": "Destination Screenshot",
+        "body": (
+            "A **headless browser screenshot** of the destination page was captured during analysis. "
+            "Screenshots are taken using a local Playwright instance — the page is loaded in an "
+            "isolated browser with no cookies or session data.\n\n"
+            "Screenshots help identify:\n"
+            "- Credential harvesting pages impersonating known brands\n"
+            "- Fake login forms, CAPTCHA bypass lures, or tech support scams\n"
+            "- Pages that appear blank to scanners but render content in a real browser\n\n"
+            "The screenshot is shown in the panel above."
+        ),
+    },
+}
+
+
+def _render_url_finding_popovers(findings: list[str]) -> None:
+    """Render each URL finding as a clickable popover button with a full explanation."""
+    for finding_key in findings:
+        detail = _URL_FINDING_DETAILS.get(finding_key)
+        if detail:
+            with st.popover(detail["label"], use_container_width=True):
+                st.markdown(f"### {detail['title']}")
+                st.markdown(detail["body"])
+        else:
+            # Unknown finding — plain field fallback
+            _ei_field(finding_key, finding_key, "medium")
+
+
 def _ei_detail_url(url: str, bundle: AnalysisBundle) -> None:
     st.subheader("URL detail")
 
@@ -1327,17 +1422,8 @@ def _ei_detail_url(url: str, bundle: AnalysisBundle) -> None:
                 _ei_field(f"Hop {i}", hop)
 
         if artifact.findings:
-            _ei_section("Findings")
-            labels = {
-                "tracking-wrapper": ("Tracking / redirect wrapper detected", "medium"),
-                "shortened-url": ("URL shortener — true destination hidden", "medium"),
-                "display-text-mismatch": ("Display text does not match link destination", "high"),
-                "redirect-resolved": ("URL redirects to a different destination", "medium"),
-                "screenshot-available": ("Screenshot captured", "low"),
-            }
-            for f in artifact.findings:
-                lbl, risk = labels.get(f, (f, "medium"))
-                _ei_field(f, lbl, risk)
+            _ei_section("Findings — click any to learn more")
+            _render_url_finding_popovers(artifact.findings)
 
         if artifact.screenshot_url:
             _ei_section("Screenshot")
