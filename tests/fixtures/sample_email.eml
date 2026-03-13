@@ -1,0 +1,25 @@
+From: "Security Team" <alerts@example.com>
+To: analyst@example.org
+Cc: manager@example.org
+Subject: Suspicious login review
+Date: Tue, 11 Mar 2025 09:15:00 +1300
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: text/plain; charset="utf-8"
+
+Please review this suspicious login.
+Visit http://example.com/reset for validation.
+
+--BOUNDARY
+Content-Type: text/html; charset="utf-8"
+
+<html><body><p>Please review this suspicious login.</p></body></html>
+
+--BOUNDARY
+Content-Type: text/plain; name="evidence.txt"
+Content-Disposition: attachment; filename="evidence.txt"
+
+Attachment content here.
+--BOUNDARY--
