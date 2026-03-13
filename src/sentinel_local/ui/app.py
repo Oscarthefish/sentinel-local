@@ -1441,6 +1441,110 @@ def _ei_detail_url(url: str, bundle: AnalysisBundle) -> None:
         st.info("No enrichment data for this URL. Enable external enrichment and re-run for VirusTotal results.")
 
 
+_ATTACHMENT_FINDING_DETAILS: dict[str, dict] = {
+    "risky-extension": {
+        "label": "🔴 Risky file extension",
+        "title": "Risky File Extension",
+        "body": (
+            "The attachment has a **file extension commonly associated with malware delivery** — "
+            "executables, scripts, or office files with macro support (e.g. `.exe`, `.js`, `.vbs`, "
+            "`.ps1`, `.bat`, `.com`, `.scr`, `.jar`).\n\n"
+            "Legitimate business email rarely needs to deliver executable files as attachments. "
+            "When it does, the files are almost always packaged through a secure file-sharing link "
+            "rather than sent directly.\n\n"
+            "**Never open executable attachments** from unexpected or unverified senders. Even if "
+            "the sender appears legitimate, their account may have been compromised."
+        ),
+    },
+    "archive-file": {
+        "label": "⚠ Archive file",
+        "title": "Archive / Compressed File",
+        "body": (
+            "The attachment is a **compressed archive** (e.g. `.zip`, `.rar`, `.7z`, `.gz`, `.tar`). "
+            "Archives are routinely used by attackers to:\n\n"
+            "- Bundle malicious files while evading email gateway scanning\n"
+            "- Add password protection to prevent automated analysis (password is usually in the email body)\n"
+            "- Nest archives inside archives to increase scan evasion depth\n\n"
+            "Archives themselves are not inherently malicious, but treat them with extra caution — "
+            "especially if password-protected, unexpected, or paired with urgency in the email body. "
+            "Extract only in an isolated environment and inspect the contents before opening."
+        ),
+    },
+    "macro-capable-document": {
+        "label": "⚠ Macro-capable document",
+        "title": "Macro-Capable Office Document",
+        "body": (
+            "The attachment is an **Office document format that supports macros** — `.doc`, `.xls`, "
+            "`.ppt` (legacy formats), `.xlsm`, `.docm`, `.pptm`, or similar.\n\n"
+            "Macros are small programs embedded in Office files. Attackers use malicious macros to:\n\n"
+            "- Download and execute malware when the document is opened\n"
+            "- Disable security software\n"
+            "- Establish persistence or lateral movement\n\n"
+            "**Never enable macros** in an unexpected attachment. Modern Office versions disable macros "
+            "by default — if the document instructs you to enable them, that is a major red flag. "
+            "Open in a sandboxed environment or submit the hash to VirusTotal for reputation checking."
+        ),
+    },
+    "lure-filename": {
+        "label": "🔴 Lure filename",
+        "title": "Suspicious Lure Filename",
+        "body": (
+            "The filename contains **words commonly used in social engineering lures** to create urgency "
+            "or trick the recipient into opening the file — e.g. `Invoice`, `Payment`, `Urgent`, "
+            "`Remittance`, `NDA`, `Contract`, `Receipt`, `Statement`.\n\n"
+            "These filenames exploit predictable human behaviour: recipients are more likely to open "
+            "a file called `URGENT-Invoice-2024.xlsx` than one called `document.xlsx`.\n\n"
+            "Lure filenames are a consistent pattern across phishing, BEC (Business Email Compromise), "
+            "and malware delivery campaigns. Combined with other signals, a lure filename significantly "
+            "increases the likelihood this is a malicious attachment."
+        ),
+    },
+    "mime-extension-mismatch": {
+        "label": "🔴 MIME / extension mismatch",
+        "title": "MIME Type Does Not Match File Extension",
+        "body": (
+            "The file's **declared MIME type** (what the email says the file is) does not match "
+            "what its **extension** suggests it is. For example, a file named `document.pdf` with "
+            "a MIME type of `application/x-msdownload` is actually an executable.\n\n"
+            "This is a deliberate obfuscation technique used to:\n\n"
+            "- Bypass email filters that block by extension\n"
+            "- Trick recipients into thinking they're opening a safe file type\n"
+            "- Evade security tools that only check one attribute\n\n"
+            "**Treat this as high risk.** The true file type should be verified before opening, "
+            "ideally by running the file hash through a reputation service or sandbox."
+        ),
+    },
+    "hash-available": {
+        "label": "🔵 Hash computed",
+        "title": "File Hash Available",
+        "body": (
+            "A **SHA-256 cryptographic hash** of the attachment has been computed and is shown above.\n\n"
+            "File hashes are useful for:\n\n"
+            "- **Reputation lookup** — submit the hash to VirusTotal, MalwareBazaar, or similar "
+            "services to check if it matches known malware\n"
+            "- **Evidence preservation** — the hash uniquely identifies this exact file for "
+            "incident documentation\n"
+            "- **IOC sharing** — include the hash in threat intelligence reports so other analysts "
+            "can identify the same file if they encounter it\n\n"
+            "Enable external enrichment and re-run to automatically check the hash against "
+            "VirusTotal."
+        ),
+    },
+}
+
+
+def _render_attachment_finding_popovers(findings: list[str]) -> None:
+    """Render each attachment finding as a clickable popover with a full explanation."""
+    for finding_key in findings:
+        detail = _ATTACHMENT_FINDING_DETAILS.get(finding_key)
+        if detail:
+            with st.popover(detail["label"], use_container_width=True):
+                st.markdown(f"### {detail['title']}")
+                st.markdown(detail["body"])
+        else:
+            _ei_field("Finding", finding_key, "medium")
+
+
 def _ei_detail_attachment(filename: str, bundle: AnalysisBundle) -> None:
     st.subheader("Attachment detail")
 
@@ -1462,8 +1566,8 @@ def _ei_detail_attachment(filename: str, bundle: AnalysisBundle) -> None:
         if att_artifact.extension:
             _ei_field("Extension", att_artifact.extension)
         if att_artifact.findings:
-            for f in att_artifact.findings:
-                _ei_field("Finding", f, "medium")
+            _ei_section("Findings — click any to learn more")
+            _render_attachment_finding_popovers(att_artifact.findings)
         else:
             st.info("No suspicious findings for this attachment.")
 
