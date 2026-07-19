@@ -20,15 +20,15 @@ st.set_page_config(
 st.markdown(APP_STYLES, unsafe_allow_html=True)
 st.markdown(
     "<style>.doc-section{margin-bottom:2rem;} h2{letter-spacing:.06em;} "
-    "code{background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.25);"
-    "padding:.1rem .4rem;border-radius:6px;font-size:.85em;color:#00c8ff;}</style>",
+    "code{background:var(--accent-soft);border:1px solid rgba(59,130,246,.25);"
+    "padding:.1rem .4rem;border-radius:6px;font-size:.85em;color:var(--accent);}</style>",
     unsafe_allow_html=True,
 )
 
 # ── Sidebar ───────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        "<div style='font-family:monospace;font-size:.75rem;color:#00b4d8;"
+        "<div style='font-family:monospace;font-size:.75rem;color:var(--accent,#3b82f6);"
         "letter-spacing:.18em;text-transform:uppercase;margin-bottom:.4rem'>"
         "Sentinel Local</div>",
         unsafe_allow_html=True,
@@ -55,7 +55,7 @@ with st.sidebar:
 
 # ── Page header ───────────────────────────────────────────────────────────
 st.markdown(
-    "<div style='font-family:monospace;font-size:.65rem;color:#00b4d8;"
+    "<div style='font-family:monospace;font-size:.65rem;color:var(--accent,#3b82f6);"
     "letter-spacing:.22em;text-transform:uppercase;margin-bottom:.3rem'>"
     "Sentinel Local / Documentation</div>",
     unsafe_allow_html=True,

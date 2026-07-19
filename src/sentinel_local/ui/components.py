@@ -83,11 +83,6 @@ APP_STYLES = """
     background: var(--accent);
     box-shadow: 0 0 0 3px rgba(59,130,246,.2);
     flex-shrink: 0;
-    animation: pulse-dot 2.4s ease-in-out infinite;
-  }
-  @keyframes pulse-dot {
-    0%,100% { box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
-    50%      { box-shadow: 0 0 0 5px rgba(59,130,246,.1); }
   }
   .console-eyebrow {
     font-size: 0.58rem;
@@ -117,67 +112,6 @@ APP_STYLES = """
   }
 
   /* ── Hero ────────────────────────────────────────────────────── */
-  .hero {
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    padding: 1.1rem 1.25rem;
-    background: var(--panel);
-    box-shadow: var(--shadow);
-    margin-bottom: 1rem;
-  }
-  .hero-kicker {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.22em;
-    color: var(--accent);
-    font-family: var(--mono);
-    margin-bottom: 0.25rem;
-  }
-  .hero-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ink);
-    margin: 0 0 0.35rem;
-    max-width: 36ch;
-    line-height: 1.3;
-    font-family: var(--mono);
-  }
-  .hero-copy {
-    color: var(--muted);
-    max-width: 54rem;
-    margin: 0;
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.7rem;
-    margin-top: 0.8rem;
-  }
-  .panel {
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    background: var(--panel-muted);
-    padding: 0.7rem 0.85rem;
-  }
-  .panel-title {
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--accent);
-    margin-bottom: 0.38rem;
-    font-family: var(--mono);
-    font-weight: 600;
-  }
-  .list-plain {
-    margin: 0;
-    padding-left: 1rem;
-    color: var(--muted);
-    line-height: 1.65;
-    font-size: 0.85rem;
-  }
-
   /* ── Section cards ──────────────────────────────────────────── */
   .section-card {
     border: 1px solid var(--line);
@@ -205,101 +139,6 @@ APP_STYLES = """
   }
   .option-stack { display: grid; gap: 0.3rem; padding-top: 0.1rem; }
   .stack { display: grid; gap: 0.75rem; }
-
-  /* ── Assessment / verdict block ─────────────────────────────── */
-  .assessment {
-    border: 1px solid var(--line);
-    border-left: 4px solid var(--line-strong);
-    border-radius: var(--r-lg);
-    padding: 1rem 1.2rem;
-    background: var(--panel);
-    margin: 0 0 1rem;
-    box-shadow: var(--shadow);
-  }
-  .assessment.verdict-benign   { border-left-color: var(--ok); }
-  .assessment.verdict-suspicious { border-left-color: var(--warn); }
-  .assessment.verdict-malicious  { border-left-color: var(--danger); }
-  .assessment-label {
-    font-size: 0.58rem;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--muted);
-    font-family: var(--mono);
-    margin-bottom: 0.28rem;
-  }
-  .assessment-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin: 0.12rem 0 0.4rem;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    font-family: var(--mono);
-  }
-  .assessment-title.benign    { color: var(--ok); }
-  .assessment-title.suspicious { color: var(--warn); }
-  .assessment-title.malicious  { color: var(--danger); }
-  .status-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 0.65rem;
-  }
-  .status-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.24rem 0.58rem;
-    border-radius: var(--r-pill);
-    border: 1px solid var(--line);
-    font-size: 0.68rem;
-    color: var(--muted);
-    background: var(--panel-muted);
-    font-family: var(--mono);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-  .status-chip .icon { color: var(--accent); font-size: 0.68rem; }
-  .assessment-meta { color: var(--muted); line-height: 1.6; font-size: 0.85rem; }
-  .assessment-meta strong { color: var(--ink); }
-  .mini-note {
-    border-left: 2px solid var(--accent);
-    padding-left: 0.65rem;
-    color: var(--muted);
-    margin: 0.55rem 0 0;
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-
-  /* ── Metric grid ─────────────────────────────────────────────── */
-  .metric-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-    gap: 0.6rem;
-    margin-top: 0.85rem;
-  }
-  .metric-card {
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    padding: 0.8rem 0.9rem;
-    background: var(--panel-muted);
-  }
-  .metric-label {
-    color: var(--muted);
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-family: var(--mono);
-    font-weight: 600;
-  }
-  .metric-value {
-    color: var(--ink);
-    font-size: 1.35rem;
-    font-weight: 700;
-    margin-top: 0.18rem;
-    letter-spacing: 0.02em;
-    font-family: var(--mono);
-  }
-  .metric-note { color: var(--muted); font-size: 0.75rem; margin-top: 0.22rem; line-height: 1.45; }
 
   /* ── Subtle grid / cards ─────────────────────────────────────── */
   .subtle-grid {
@@ -377,32 +216,6 @@ APP_STYLES = """
   .badge-medium { color: #b45309;       background: var(--warn-soft);   border-color: rgba(245,158,11,.3); }
   .badge-low, .badge-info { color: var(--ok); background: var(--ok-soft); border-color: rgba(16,185,129,.3); }
 
-  /* ── Chips / pills ───────────────────────────────────────────── */
-  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.55rem; }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--line);
-    border-radius: var(--r-pill);
-    padding: 0.22rem 0.55rem;
-    font-size: 0.7rem;
-    color: var(--muted);
-    background: var(--panel-muted);
-    font-family: var(--mono);
-  }
-  .chip-local   { background: var(--accent-soft); border-color: rgba(59,130,246,.3); color: var(--accent); }
-  .recipient-pill {
-    display: inline-block;
-    padding: 0.1rem 0.4rem;
-    border-radius: var(--r-pill);
-    border: 1px solid rgba(59,130,246,.3);
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 0.68rem;
-    margin-left: 0.35rem;
-    font-family: var(--mono);
-  }
-
   /* ── Risk dot ────────────────────────────────────────────────── */
   .risk-dot {
     display: inline-block;
@@ -415,36 +228,6 @@ APP_STYLES = """
   .risk-dot.red   { background: var(--danger); }
   .risk-dot.amber { background: var(--warn); }
   .risk-dot.green { background: var(--ok); }
-
-  /* ── Toolbar ─────────────────────────────────────────────────── */
-  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-  .toolbar-copy { color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
-  .toolbar-meta { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-  .meta-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.2rem 0.5rem;
-    border-radius: var(--r-pill);
-    background: var(--panel-muted);
-    border: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 0.66rem;
-    font-family: var(--mono);
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
-
-  /* ── Trust banner ────────────────────────────────────────────── */
-  .trust-banner {
-    border: 1px solid rgba(16,185,129,.25);
-    border-radius: var(--r);
-    background: rgba(16,185,129,.06);
-    padding: 0.72rem 0.9rem;
-    color: var(--ink);
-    font-size: 0.84rem;
-    line-height: 1.6;
-  }
-  .trust-banner strong { color: var(--ok); }
 
   /* ── Empty state ─────────────────────────────────────────────── */
   .empty-state {
@@ -672,33 +455,13 @@ APP_STYLES = """
   .ei-field-value.risk-low    { color: var(--ok); }
   .ei-field-value.risk-normal { color: var(--ink); }
 
-  /* ── Auth badge row ──────────────────────────────────────────── */
-  .auth-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.3rem 0 0.6rem; }
-  .auth-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    padding: 0.28rem 0.65rem;
-    border-radius: var(--r-pill);
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 700;
-    border: 1px solid transparent;
-  }
-  .auth-badge.pass   { background: var(--ok-soft);     border-color: rgba(16,185,129,.3);  color: var(--ok); }
-  .auth-badge.fail   { background: var(--danger-soft); border-color: rgba(239,68,68,.3);   color: var(--danger); }
-  .auth-badge.warn   { background: var(--warn-soft);   border-color: rgba(245,158,11,.3);  color: #b45309; }
-  .auth-badge.unknown{ background: var(--panel-muted); border-color: var(--line);           color: var(--muted); }
-
   /* ── Responsive ──────────────────────────────────────────────── */
   @media (max-width: 980px) {
-    .hero-grid, .metric-grid { grid-template-columns: 1fr 1fr; }
     .vbar-body { flex-direction: column; align-items: flex-start; }
   }
   @media (max-width: 680px) {
-    .hero, .section-card, .assessment { padding: 0.8rem; border-radius: var(--r); }
-    .hero-title { font-size: 1rem; }
-    .hero-grid, .metric-grid, .subtle-grid { grid-template-columns: 1fr; }
+    .section-card { padding: 0.8rem; border-radius: var(--r); }
+    .subtle-grid { grid-template-columns: 1fr; }
   }
 </style>
 <div style="display:none" class="sentinel-shell"></div>

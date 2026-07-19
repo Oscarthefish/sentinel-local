@@ -665,9 +665,9 @@ def _render_tab_findings(bundle: AnalysisBundle) -> None:
     analysis = bundle.analysis_result
     analyst_summary = bundle.analyst_summary_result
 
-    # AI/LLM narrative (if available)
+    # Local model narrative (if available)
     if bundle.narrative_report:
-        st.markdown("**AI narrative**")
+        st.markdown("**Local model narrative**")
         st.write(bundle.narrative_report.get("summary", ""))
         rationale = bundle.narrative_report.get("verdict_rationale", "")
         if rationale:
