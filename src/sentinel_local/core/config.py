@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     enable_enrichment: bool = Field(default=False)
     virustotal_api_key: str | None = Field(default=None)
     abuseipdb_api_key: str | None = Field(default=None)
+    emailrep_api_key: str | None = Field(default=None)
     enrichment_timeout_seconds: int = Field(default=10)
     enable_attachment_scanning: bool = Field(default=False)
     yara_binary_path: str | None = Field(default=None)

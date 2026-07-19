@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlsplit
+
+_JWT_RE = re.compile(r'\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b')
 
 import httpx
 
@@ -57,6 +60,8 @@ def analyze_urls(
             findings.append("shortened-url")
         if _has_display_mismatch(display_text, indicator.normalized_value):
             findings.append("display-text-mismatch")
+        if _JWT_RE.search(indicator.normalized_value):
+            findings.append("jwt-in-url")
 
         artifacts.append(UrlArtifact(
             original_url=indicator.normalized_value,
@@ -68,7 +73,7 @@ def analyze_urls(
 
     # Resolve redirects concurrently (network phase, only when requested)
     if resolve_redirects and artifacts:
-        _resolve_redirects_parallel(artifacts, timeout_seconds=timeout_seconds)
+        _resolve_redirects_parallel(artifacts, timeout_seconds=timeout_seconds, client=client)
 
     if enable_screenshots:
         if screenshot_provider == "playwright":
@@ -87,11 +92,16 @@ def analyze_urls(
     return UrlAnalysisResult(artifacts=artifacts, html_artifacts=html_artifacts)
 
 
-def _resolve_redirects_parallel(artifacts: list[UrlArtifact], *, timeout_seconds: int) -> None:
+def _resolve_redirects_parallel(
+    artifacts: list[UrlArtifact],
+    *,
+    timeout_seconds: int,
+    client: httpx.Client | None = None,
+) -> None:
     """Resolve redirect chains for all artifacts concurrently, mutating them in place."""
     def _resolve(artifact: UrlArtifact) -> tuple[UrlArtifact, str | None, list[str]]:
         target = artifact.unwrapped_url or artifact.original_url
-        final_url, chain = _resolve_redirect_chain(target, timeout_seconds=timeout_seconds)
+        final_url, chain = _resolve_redirect_chain(target, timeout_seconds=timeout_seconds, client=client)
         return artifact, final_url, chain
 
     workers = min(_MAX_REDIRECT_WORKERS, len(artifacts))
@@ -145,7 +155,7 @@ def _resolve_redirect_chain(
         return None, []
 
     close_client = client is None
-    client = client or httpx.Client(timeout=timeout_seconds, follow_redirects=True)
+    client = client or httpx.Client(timeout=timeout_seconds, follow_redirects=True)  # noqa: PLW0621
     try:
         response = client.get(url)
         chain = [str(item.headers.get("location")) for item in response.history if item.headers.get("location")]

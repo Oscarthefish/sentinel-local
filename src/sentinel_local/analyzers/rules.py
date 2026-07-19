@@ -8,6 +8,7 @@ import re
 
 from sentinel_local.domain.models import ExtractionResult, HeaderAnalysisResult, ParsedEmail, RuleHit
 from sentinel_local.header_analysis import analyze_headers
+from sentinel_local.analyzers.secret_scanner import scan_secrets
 
 
 SUSPICIOUS_ATTACHMENT_EXTENSIONS = {".html", ".htm", ".svg", ".js", ".iso", ".zip", ".exe", ".scr"}
@@ -48,6 +49,7 @@ def evaluate_rules(
     hits.extend(_rule_html_attachment(extraction_result))
     hits.extend(_rule_ip_and_hash_present(extraction_result))
     hits.extend(_rule_recipient_volume(parsed_email))
+    hits.extend(scan_secrets(parsed_email))
 
     return hits
 

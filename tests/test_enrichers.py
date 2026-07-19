@@ -36,9 +36,9 @@ def test_enrich_indicators_uses_configured_providers() -> None:
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
     settings = Settings(
-        ENABLE_ENRICHMENT=True,
-        VIRUSTOTAL_API_KEY="vt-key",
-        ABUSEIPDB_API_KEY="abuse-key",
+        enable_enrichment=True,
+        virustotal_api_key="vt-key",
+        abuseipdb_api_key="abuse-key",
     )
     extraction = ExtractionResult(
         indicators=[
@@ -65,7 +65,7 @@ def test_virustotal_url_encoding_path_is_supported() -> None:
         )
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
-    settings = Settings(ENABLE_ENRICHMENT=True, VIRUSTOTAL_API_KEY="vt-key")
+    settings = Settings(enable_enrichment=True, virustotal_api_key="vt-key")
     extraction = ExtractionResult(
         indicators=[
             Indicator(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 from email.utils import getaddresses, parsedate_to_datetime
 
 from sentinel_local.domain.models import (
@@ -11,6 +12,58 @@ from sentinel_local.domain.models import (
     MailFlowHop,
     ParsedEmail,
 )
+
+
+_SPF_TENANT_MAP: dict[str, str] = {
+    "_spf.google.com": "Google Workspace",
+    "spf.protection.outlook.com": "Microsoft 365",
+    "_spf.salesforce.com": "Salesforce",
+    "_spf.atlassian.net": "Atlassian Cloud",
+    "spf.mandrillapp.com": "Mailchimp/Mandrill",
+    "_spf.mailchimp.com": "Mailchimp",
+    "sendgrid.net": "SendGrid",
+    "mailgun.org": "Mailgun",
+    "amazonses.com": "Amazon SES",
+    "mktomail.com": "Marketo",
+    "hubspotemail.net": "HubSpot",
+    "smtp.zendesk.com": "Zendesk",
+    "pphosted.com": "Proofpoint",
+    "mimecast.com": "Mimecast",
+    "spf.messagelabs.com": "Symantec Email Security",
+}
+
+
+def _lookup_spf_txt(domain: str) -> str | None:
+    """Return the SPF TXT record for domain via dig, or None on failure."""
+    try:
+        result = subprocess.run(
+            ["dig", "+short", "+time=2", "+tries=1", "TXT", domain],
+            capture_output=True, text=True, timeout=4,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip().strip('"')
+            if line.startswith("v=spf1"):
+                return line
+    except Exception:
+        pass
+    return None
+
+
+def _infer_spf_tenants(domain: str | None) -> list[str]:
+    """Infer which mail platform(s) the domain uses based on SPF include: records."""
+    if not domain:
+        return []
+    spf_record = _lookup_spf_txt(domain)
+    if not spf_record:
+        return []
+    tenants: list[str] = []
+    for token in spf_record.split():
+        value = token.removeprefix("include:").removeprefix("redirect=").lower()
+        for pattern, tenant_name in _SPF_TENANT_MAP.items():
+            if value == pattern or value.endswith(f".{pattern}"):
+                if tenant_name not in tenants:
+                    tenants.append(tenant_name)
+    return tenants
 
 
 def analyze_headers(parsed_email: ParsedEmail) -> HeaderAnalysisResult:
@@ -33,6 +86,7 @@ def analyze_headers(parsed_email: ParsedEmail) -> HeaderAnalysisResult:
     authentication.spf_aligned = _is_domain_aligned(authentication.spf_domain, sender_domain)
     authentication.dkim_aligned = _is_domain_aligned(authentication.dkim_domain, sender_domain)
     authentication.dmarc_aligned = _is_domain_aligned(authentication.header_from_domain, sender_domain)
+    authentication.spf_tenants = _infer_spf_tenants(sender_domain)
 
     reply_to_header = _get_header(headers, "reply-to")
     return_path_header = _get_header(headers, "return-path")

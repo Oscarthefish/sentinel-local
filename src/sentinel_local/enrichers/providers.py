@@ -101,6 +101,83 @@ def lookup_abuseipdb(
             client.close()
 
 
+def lookup_emailrep(
+    *,
+    indicator_value: str,
+    api_key: str | None = None,
+    timeout_seconds: int,
+    client: httpx.Client | None = None,
+) -> EnrichmentRecord | None:
+    """Look up sender email reputation via EmailRep.io."""
+    if not indicator_value or "@" not in indicator_value:
+        return None
+
+    close_client = client is None
+    headers: dict[str, str] = {"User-Agent": "sentinel-local"}
+    if api_key:
+        headers["Key"] = api_key
+    client = client or httpx.Client(timeout=timeout_seconds)
+    try:
+        response = client.get(f"https://emailrep.io/{indicator_value}", headers=headers)
+        if response.status_code in {404, 429}:
+            return None
+        response.raise_for_status()
+        data = response.json()
+        details = data.get("details", {})
+        reputation = data.get("reputation", "none")
+        suspicious = data.get("suspicious", False)
+        references = data.get("references", 0)
+        malicious = details.get("malicious_activity", False)
+        credentials_leaked = details.get("credentials_leaked", False)
+        disposable = details.get("disposable", False)
+        spoofable = details.get("spoofable", False)
+
+        if malicious or (suspicious and credentials_leaked):
+            severity = "high"
+        elif suspicious or credentials_leaked or disposable:
+            severity = "medium"
+        elif reputation == "none" or spoofable:
+            severity = "low"
+        else:
+            severity = "info"
+
+        flags = [
+            label for label, active in [
+                ("malicious_activity", malicious),
+                ("credentials_leaked", credentials_leaked),
+                ("disposable_address", disposable),
+                ("domain_spoofable", spoofable),
+                ("spam_sender", details.get("spam", False)),
+            ] if active
+        ]
+        summary = f"EmailRep reputation={reputation}, references={references}"
+        if flags:
+            summary += f", flags={','.join(flags)}"
+
+        return EnrichmentRecord(
+            provider="EmailRep",
+            indicator_type="email",
+            indicator_value=indicator_value,
+            summary=summary,
+            severity=severity,
+            details={
+                "reputation": reputation,
+                "suspicious": suspicious,
+                "references": references,
+                "malicious_activity": malicious,
+                "credentials_leaked": credentials_leaked,
+                "disposable": disposable,
+                "spoofable": spoofable,
+                "profiles": details.get("profiles", []),
+            },
+        )
+    except Exception:
+        return None
+    finally:
+        if close_client:
+            client.close()
+
+
 def _virustotal_path(indicator_type: str, indicator_value: str) -> str | None:
     if indicator_type == "domain":
         return f"domains/{indicator_value}"

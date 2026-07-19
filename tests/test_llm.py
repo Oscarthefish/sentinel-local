@@ -16,8 +16,8 @@ def test_build_narrative_prompt_contains_deterministic_sections() -> None:
         analyst_note="SOC ticket",
     )
 
-    assert '"parsed_email"' in prompt
-    assert '"analysis"' in prompt
+    assert '"subject"' in prompt
+    assert '"verdict"' in prompt
     assert '"analyst_note": "SOC ticket"' in prompt
 
 

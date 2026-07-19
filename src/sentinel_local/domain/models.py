@@ -175,6 +175,7 @@ class AuthenticationEvidence(BaseModel):
     spf_result: str | None = None
     spf_domain: str | None = None
     spf_aligned: bool | None = None
+    spf_tenants: list[str] = Field(default_factory=list)
     dkim_result: str | None = None
     dkim_domain: str | None = None
     dkim_aligned: bool | None = None

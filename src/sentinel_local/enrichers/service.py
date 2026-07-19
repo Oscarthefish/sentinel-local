@@ -9,7 +9,7 @@ import httpx
 
 from sentinel_local.core.config import Settings
 from sentinel_local.domain.models import EnrichmentRecord, EnrichmentResult, ExtractionResult, ParsedEmail
-from sentinel_local.enrichers.providers import lookup_abuseipdb, lookup_virustotal
+from sentinel_local.enrichers.providers import lookup_abuseipdb, lookup_emailrep, lookup_virustotal
 
 log = logging.getLogger(__name__)
 
@@ -58,39 +58,60 @@ def enrich_indicators(
 
     timeout = settings.enrichment_timeout_seconds
 
-    def _lookup(itype: str, ivalue: str, rel_attachment: str | None) -> list[EnrichmentRecord]:
-        """Run all provider lookups for one indicator in a dedicated thread-local client."""
+    def _run_providers(
+        c: httpx.Client, itype: str, ivalue: str, rel_attachment: str | None
+    ) -> list[EnrichmentRecord]:
         results: list[EnrichmentRecord] = []
-        # Each thread owns its client — httpx.Client is not thread-safe to share.
-        with httpx.Client(timeout=timeout) as thread_client:
-            if settings.virustotal_api_key and itype in {"url", "domain", "ip", "hash"}:
-                try:
-                    record = lookup_virustotal(
-                        indicator_type=itype,
-                        indicator_value=ivalue,
-                        api_key=settings.virustotal_api_key,
-                        timeout_seconds=timeout,
-                        related_attachment=rel_attachment,
-                        client=thread_client,
-                    )
-                    if record is not None:
-                        results.append(record)
-                except Exception:
-                    log.debug("VT lookup failed: %s %s", itype, ivalue)
+        if settings.virustotal_api_key and itype in {"url", "domain", "ip", "hash"}:
+            try:
+                record = lookup_virustotal(
+                    indicator_type=itype,
+                    indicator_value=ivalue,
+                    api_key=settings.virustotal_api_key,
+                    timeout_seconds=timeout,
+                    related_attachment=rel_attachment,
+                    client=c,
+                )
+                if record is not None:
+                    results.append(record)
+            except Exception:
+                log.debug("VT lookup failed: %s %s", itype, ivalue)
 
-            if settings.abuseipdb_api_key and itype == "ip":
-                try:
-                    results.append(
-                        lookup_abuseipdb(
-                            indicator_value=ivalue,
-                            api_key=settings.abuseipdb_api_key,
-                            timeout_seconds=timeout,
-                            client=thread_client,
-                        )
+        if settings.abuseipdb_api_key and itype == "ip":
+            try:
+                results.append(
+                    lookup_abuseipdb(
+                        indicator_value=ivalue,
+                        api_key=settings.abuseipdb_api_key,
+                        timeout_seconds=timeout,
+                        client=c,
                     )
-                except Exception:
-                    log.debug("AbuseIPDB lookup failed: %s", ivalue)
+                )
+            except Exception:
+                log.debug("AbuseIPDB lookup failed: %s", ivalue)
+
+        if itype == "email":
+            try:
+                record = lookup_emailrep(
+                    indicator_value=ivalue,
+                    api_key=settings.emailrep_api_key,
+                    timeout_seconds=timeout,
+                    client=c,
+                )
+                if record is not None:
+                    results.append(record)
+            except Exception:
+                log.debug("EmailRep lookup failed: %s", ivalue)
+
         return results
+
+    def _lookup(itype: str, ivalue: str, rel_attachment: str | None) -> list[EnrichmentRecord]:
+        # If a test client is injected, use it directly (safe — tests are single-threaded).
+        # In production client is None, so each thread creates its own to avoid sharing.
+        if client is not None:
+            return _run_providers(client, itype, ivalue, rel_attachment)
+        with httpx.Client(timeout=timeout) as thread_client:
+            return _run_providers(thread_client, itype, ivalue, rel_attachment)
 
     records: list[EnrichmentRecord] = []
     with ThreadPoolExecutor(max_workers=min(_MAX_WORKERS, len(work))) as pool:

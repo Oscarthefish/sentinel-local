@@ -1,4 +1,5 @@
 from sentinel_local.app.service import build_analysis_stage_plan, run_local_analysis
+from sentinel_local.core.config import Settings, get_settings
 
 
 def test_run_local_analysis_degrades_gracefully_when_optional_steps_fail(monkeypatch) -> None:
@@ -9,6 +10,10 @@ def test_run_local_analysis_degrades_gracefully_when_optional_steps_fail(monkeyp
     monkeypatch.setattr(
         "sentinel_local.app.service.generate_narrative_report",
         lambda **kwargs: (_ for _ in ()).throw(RuntimeError("llm timeout")),
+    )
+    monkeypatch.setattr(
+        "sentinel_local.app.service.get_settings",
+        lambda: Settings(enable_enrichment=True, enable_llm=True),
     )
 
     bundle = run_local_analysis(
