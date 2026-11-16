@@ -1,0 +1,31 @@
+Return-Path: <bounce@mailer.bad.example>
+Received: from mail.bad.example (unknown [203.0.113.55])
+	by mx.example.org with ESMTP id 4Xyz123; Tue, 11 Mar 2025 08:02:11 +1300
+Authentication-Results: mx.example.org;
+	spf=fail smtp.mailfrom=mailer.bad.example;
+	dkim=none;
+	dmarc=fail header.from=example.com
+From: "Example Corp Accounts Payable" <accounts@example.com>
+Reply-To: billing@vendor-payments.example
+To: finance@example.org
+Subject: URGENT: Overdue invoice INV-20931 - payment details updated
+Date: Tue, 11 Mar 2025 08:02:05 +1300
+Message-ID: <demo-0001@mailer.bad.example>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="DEMO"
+
+--DEMO
+Content-Type: text/html; charset="utf-8"
+
+<p>Hi,</p>
+<p>Our banking details have changed. Invoice INV-20931 is now overdue and must be paid today to avoid a late fee.</p>
+<p>Please review and confirm the new details here:
+<a href="https://example-corp-payments.bad.example/login?session=a8f3">https://portal.example.com/invoices/INV-20931</a></p>
+<p>Regards,<br>Accounts Payable</p>
+--DEMO
+Content-Type: application/octet-stream; name="INV-20931.pdf.exe"
+Content-Disposition: attachment; filename="INV-20931.pdf.exe"
+Content-Transfer-Encoding: base64
+
+TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+--DEMO--

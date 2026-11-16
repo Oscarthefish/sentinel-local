@@ -2,6 +2,8 @@
 
 Sentinel Local is a local-first suspicious email triage and investigation tool for macOS. It is designed for practical SOC analyst use with a cheap/free stack, local processing by default, optional privacy-conscious enrichment, and explainable outputs.
 
+![Sentinel Local triaging a synthetic invoice-fraud email: SPF, DKIM and DMARC failures and a malicious verdict](docs/screenshots/triage.png)
+
 ## Current capabilities
 
 - Ingest `.eml`, `.msg`, `.txt`, or pasted raw content
@@ -118,6 +120,8 @@ Open:
 
 - [http://localhost:8501](http://localhost:8501)
 
+To try it, load [examples/demo_invoice_phish.eml](examples/demo_invoice_phish.eml), a synthetic invoice-fraud email that uses only reserved example domains.
+
 Optional FastAPI health app:
 
 ```bash
@@ -157,7 +161,7 @@ SENTINEL_ATTACHMENT_SCAN_TIMEOUT_SECONDS=20
 ```
 
 If local scanners are enabled but binaries or rules are missing, Sentinel fails open and keeps the core analysis result.
-The repo includes a starter ruleset at [rules/email_triage.yar](/Users/jhill/Desktop/Email%20Analysis%20Project/sentinel-local/rules/email_triage.yar).
+The repo includes a starter ruleset at [rules/email_triage.yar](rules/email_triage.yar).
 
 ## Privacy and safety
 
@@ -176,4 +180,8 @@ pytest
 
 ## Recommended next steps
 
-See [REVIEW_AND_ROADMAP.md](/Users/jhill/Desktop/Email%20Analysis%20Project/sentinel-local/REVIEW_AND_ROADMAP.md) for the current review, workflow, gap analysis, and phased roadmap.
+See [REVIEW_AND_ROADMAP.md](REVIEW_AND_ROADMAP.md) for the current review, workflow, gap analysis, and phased roadmap.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
