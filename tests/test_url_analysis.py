@@ -134,3 +134,39 @@ def test_url_analysis_skips_private_targets_for_redirects_and_screenshots() -> N
     assert artifact.final_url is None
     assert artifact.redirect_chain == []
     assert artifact.screenshot_url is None
+
+
+def test_url_shown_only_as_link_text_is_flagged_as_a_decoy() -> None:
+    # The visible text is a trusted-looking URL; the real href goes elsewhere.
+    parsed = ParsedEmail(
+        source_type="pasted",
+        sender=EmailAddress(email="accounts@example.com"),
+        html_body=(
+            '<p>Confirm here: <a href="https://example-corp-payments.bad.example/login?session=a8f3">'
+            "https://portal.example.com/invoices/INV-20931</a></p>"
+        ),
+    )
+    urls = ["https://example-corp-payments.bad.example/login?session=a8f3", "https://portal.example.com/invoices/INV-20931"]
+    extraction = ExtractionResult(
+        indicators=[Indicator(type="url", value=u, normalized_value=u, source="html_body") for u in urls]
+    )
+
+    result = analyze_urls(parsed_email=parsed, extraction_result=extraction)
+    findings = {a.original_url: a.findings for a in result.artifacts}
+
+    assert findings[urls[0]] == ["display-text-mismatch"]
+    assert findings[urls[1]] == ["decoy-display-text"]
+
+
+def test_matching_link_text_is_not_a_decoy() -> None:
+    url = "https://portal.example.com/invoices"
+    parsed = ParsedEmail(
+        source_type="pasted",
+        sender=EmailAddress(email="accounts@example.com"),
+        html_body=f'<a href="{url}">{url}</a>',
+    )
+    extraction = ExtractionResult(indicators=[Indicator(type="url", value=url, normalized_value=url, source="html_body")])
+
+    result = analyze_urls(parsed_email=parsed, extraction_result=extraction)
+
+    assert result.artifacts[0].findings == []

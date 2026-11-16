@@ -31,7 +31,14 @@ def analyze_urls(
     client: httpx.Client | None = None,
 ) -> UrlAnalysisResult:
     """Analyze URLs in message content and optionally resolve redirect chains."""
-    html_anchor_map = {anchor["href"]: anchor.get("text") or None for anchor in extract_anchors(parsed_email.html_body)}
+    anchors = extract_anchors(parsed_email.html_body)
+    html_anchor_map = {anchor["href"]: anchor.get("text") or None for anchor in anchors}
+    # Visible text of links whose real destination is a different domain.
+    decoy_texts = [
+        (anchor.get("text") or "").lower()
+        for anchor in anchors
+        if _has_display_mismatch(anchor.get("text") or None, anchor["href"])
+    ]
     html_artifacts = [
         HtmlArtifact(
             artifact_type=item["artifact_type"],  # type: ignore[arg-type]
@@ -60,6 +67,8 @@ def analyze_urls(
             findings.append("shortened-url")
         if _has_display_mismatch(display_text, indicator.normalized_value):
             findings.append("display-text-mismatch")
+        if indicator.normalized_value not in html_anchor_map and _is_decoy_text(indicator.normalized_value, decoy_texts):
+            findings.append("decoy-display-text")
         if _JWT_RE.search(indicator.normalized_value):
             findings.append("jwt-in-url")
 
@@ -116,6 +125,12 @@ def _resolve_redirects_parallel(
                     artifact.findings.append("redirect-resolved")
             except Exception:
                 pass
+
+
+def _is_decoy_text(url: str, decoy_texts: list[str]) -> bool:
+    """True when a URL only appears as the visible text of a link that goes elsewhere."""
+    needle = url.lower().rstrip("/")
+    return any(needle and needle in text for text in decoy_texts)
 
 
 def _has_display_mismatch(display_text: str | None, url: str) -> bool:

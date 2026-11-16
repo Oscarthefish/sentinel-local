@@ -2,7 +2,7 @@
 
 Sentinel Local is a local-first suspicious email triage and investigation tool for macOS. It is designed for practical SOC analyst use with a cheap/free stack, local processing by default, optional privacy-conscious enrichment, and explainable outputs.
 
-![Sentinel Local triaging a synthetic invoice-fraud email: SPF, DKIM and DMARC failures and a malicious verdict](docs/screenshots/triage.png)
+![Sentinel Local triaging a synthetic invoice-fraud email: a malicious verdict, the real link flagged as a display-text mismatch and the decoy link text flagged separately](docs/screenshots/triage.png)
 
 ## Current capabilities
 

@@ -209,6 +209,7 @@ URLs extracted from the message body are individually analyzed:
 | **Tracking wrapper unwrapping** | Strips known email-marketing redirect wrappers to reveal the true URL. |
 | **Shortener detection** | Identifies known URL shortener domains (bit.ly, tinyurl, etc.). |
 | **Anchor text mismatch** | Compares visible link text to the actual `href` destination. |
+| **Decoy link text** | Flags a URL that only appears as the visible text of a link whose real destination is a different domain, so the decoy is never shown as a clean link. |
 | **Redirect resolution** *(optional)* | Follows `Location:` headers up to 10 hops to find the final destination. |
 | **HTML artifact detection** | Scans the HTML body for hidden elements, embedded forms, inline scripts, and `javascript:` scheme links. |
 | **Screenshot URL generation** *(optional)* | Produces a screenshot URL when a provider is configured. |

@@ -58,7 +58,7 @@ def _link_risk_level(findings: list[str]) -> str:
         return "low"
     if {"display-text-mismatch", "shortened-url", "tracking-wrapper"} & set(findings):
         return "high"
-    if {"redirect-resolved", "screenshot-available"} & set(findings):
+    if {"redirect-resolved", "screenshot-available", "decoy-display-text"} & set(findings):
         return "medium"
     return "low"
 
@@ -846,7 +846,7 @@ def _sanitize_email_html(html_body: str, url_findings: dict) -> str:
             return m.group(0)
         url = href_m.group(1)
         if url.startswith(("javascript:", "data:", "#")):
-            return f"<a href='#' data-url='{escape(url)}'"
+            return f"<a href='#' data-url='{escape(url)}'>"
         info = url_findings.get(url, {})
         findings = info.get("findings", [])
         risk = (
@@ -861,7 +861,7 @@ def _sanitize_email_html(html_body: str, url_findings: dict) -> str:
             f"data-url='{escape(url)}' "
             f"style='color:{border_color};font-weight:600;text-decoration:underline;"
             f"background:rgba(59,130,246,.07);border-radius:3px;padding:0 2px;cursor:pointer' "
-            f"onclick=\"showDetail('{safe_url}');return false;\""
+            f"onclick=\"showDetail('{safe_url}');return false;\">"
         )
 
     html = re.sub(r"<a(\s[^>]*)?>", _rewrite_anchor, html, flags=re.IGNORECASE)
@@ -1336,6 +1336,17 @@ _URL_FINDING_DETAILS: dict[str, dict] = {
             "- They can be re-targeted — the same short link can point to different destinations over time\n\n"
             "**Recommended action:** enable redirect resolution and re-run to see the final destination "
             "before clicking."
+        ),
+    },
+    "decoy-display-text": {
+        "label": "🟠 Decoy link text",
+        "risk": "medium",
+        "title": "This URL Is Only Link Text, Not a Destination",
+        "body": (
+            "This URL appears in the email as the **visible text** of a link, but the link actually "
+            "goes somewhere else. It is what the reader is shown, not where they are sent, so it "
+            "should not be treated as a clean or trusted link.\n\n"
+            "Look at the matching link flagged with **Display text mismatch** for the real destination."
         ),
     },
     "display-text-mismatch": {
